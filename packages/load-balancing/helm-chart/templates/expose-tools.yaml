@@ -1,0 +1,55 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: default-gateway
+  namespace: istio-system
+spec:
+  selector:
+    istio: ingressgateway # use Istio default gateway implementation
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "*"
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: kiali
+  namespace: istio-system
+spec:
+  hosts:
+  - "kiali.api-127.0.0.1.nip.io"
+  gateways:
+  - default-gateway
+  http:
+  - match:
+    - uri:
+        prefix: /
+    route:
+    - destination:
+        port:
+          number: 20001
+        host: kiali
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: grafana
+  namespace: istio-system
+spec:
+  hosts:
+  - "grafana.api-127.0.0.1.nip.io"
+  gateways:
+  - default-gateway
+  http:
+  - match:
+    - uri:
+        prefix: /
+    route:
+    - destination:
+        port:
+          number: 3000
+        host: grafana

@@ -1,0 +1,130 @@
+{{ $files := .Files }}
+{{ range .Values.loadBalancingSamples }}
+{{ $namespace := .namespace }}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ $namespace }}
+  labels:
+    istio-injection: enabled
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: scripts
+  namespace: {{ $namespace }}
+data:
+  requester.js: |
+{{ $files.Get "dist/requester.js" | indent 4 }}
+  listener.js: |
+{{ $files.Get "dist/listener.js" | indent 4 }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: requester
+  namespace: {{ $namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: requester
+  template:
+    metadata:
+      labels:
+        app: requester
+        version: "1"
+    spec:
+      containers:
+      - name: requester
+        image: node:16
+        imagePullPolicy: IfNotPresent
+        command: ["node", "/app/requester.js"]
+        volumeMounts:
+        - name: scripts
+          mountPath: /app/requester.js
+          subPath: requester.js
+      volumes:
+        - name: scripts
+          configMap:
+            name: scripts
+---
+{{ range .listeners }}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ .name }}
+  namespace: {{ $namespace }}
+  labels:
+    app: listener
+    fullname: {{ .name }}
+    version: "1"
+spec:
+  containers:
+  - name: {{ .name }}
+    image: node:16
+    imagePullPolicy: IfNotPresent
+    command: ["node", "/app/listener.js"]
+    ports:
+    - name: http
+      containerPort: 3000
+      protocol: TCP
+    volumeMounts:
+    - name: scripts
+      mountPath: /app/listener.js
+      subPath: listener.js
+  volumes:
+    - name: scripts
+      configMap:
+        name: scripts
+---
+{{ end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: listener
+  namespace: {{ $namespace }}
+spec:
+  ports:
+    - port: 3000
+      targetPort: 3000
+      name: http-api
+  selector:
+    app: listener
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: listener
+  namespace: {{ $namespace }}
+spec:
+  host: listener
+  trafficPolicy:
+{{ toYaml .policy | indent 4 }}
+  subsets:
+{{ range .listeners }}
+  - name: {{ .name }}
+    labels:
+      fullname: {{ .name }}
+{{ end }}
+---
+{{ if .weighted }}
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: listener
+  namespace: {{ $namespace }}
+spec:
+  hosts:
+  - listener
+  http:
+  - route:
+{{ range .listeners }}
+    - destination:
+        host: listener
+        subset: {{ .name }}
+      weight: {{ .weight }}
+{{ end }}
+{{ end }}
+{{ end }}

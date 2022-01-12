@@ -1,0 +1,30 @@
+loadBalancingSamples:
+- namespace: load-balancing-round-robin
+  policy:
+    loadBalancer:
+      simple: ROUND_ROBIN
+  listeners:
+  - name: listener-1
+  - name: listener-2
+  - name: listener-3
+  weighted: false
+- namespace: load-balancing-random
+  policy:
+    loadBalancer:
+      simple: RANDOM
+  listeners:
+  - name: listener-1
+  - name: listener-2
+  - name: listener-3
+- namespace: load-balancing-weighted-round-robin
+  policy:
+    loadBalancer:
+      simple: ROUND_ROBIN
+  listeners:
+  - name: listener-1
+    weight: 20
+  - name: listener-2
+    weight: 30
+  - name: listener-3
+    weight: 50
+  weighted: true
