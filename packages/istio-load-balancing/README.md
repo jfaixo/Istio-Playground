@@ -1,4 +1,4 @@
-# Load balancing
+# Istio Load balancing
 
 The goal here is to play with the load balancing capabilities of Istio
 
@@ -12,10 +12,10 @@ Don't forget to `./tidy-up.sh` your room once you are done !
 
 This sample does the following:
 - create a k3d cluster
-- install istio along with some conveniency tools (pprometheus, grafana, kiali)
+- install istio along with some conveniency tools (prometheus, grafana, kiali)
 - deploy [this helm chart](./helm-chart) that contains the examples explained right below
 - exposes [kiali](http://kiali.api-127.0.0.1.nip.io:8080/) and [grafana](http://grafana.api-127.0.0.1.nip.io:8080/) locally, so that we can "see" what is happening
-- 
+
 
 ## Samples
 

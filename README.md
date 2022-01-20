@@ -1,9 +1,9 @@
-# Istio Playground
+# Kubernetes Playground
 
-Welcome to my playground, where I have fun with Istio ;)
+Welcome to my playground, where I have fun with Kubernetes ;)
 
-Below are some samples that explore some parts of Istio
+Below are some samples that explore some stuff
 
 ## Summary
-- [Load Balancing and Traffic Shifting](./packages/load-balancing/README.md)
+- [Istio Load Balancing and Traffic Shifting](./packages/load-balancing/README.md)
   
